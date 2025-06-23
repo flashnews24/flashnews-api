@@ -1,80 +1,65 @@
-const express = require('express');
-const axios = require('axios');
-const cheerio = require('cheerio');
-const cors = require('cors');
+const express = require("express");
+const axios = require("axios");
+const cheerio = require("cheerio");
 
 const app = express();
 const PORT = process.env.PORT || 10000;
 
-app.use(cors());
+// مصادر الأخبار العربية (تقدر تضيف أو تعدل)
+const sources = [
+  {
+    name: "الجزيرة",
+    url: "https://www.aljazeera.net/news/",
+    selector: ".gc__title a",
+    base: "https://www.aljazeera.net"
+  },
+  {
+    name: "العربية",
+    url: "https://www.alarabiya.net/latest-news",
+    selector: ".sc-bQCEYZ a.card-title",
+    base: "https://www.alarabiya.net"
+  },
+  {
+    name: "الشرق الأوسط",
+    url: "https://aawsat.com/home/article/all",
+    selector: ".mainContent .title a",
+    base: "https://aawsat.com"
+  }
+];
 
-app.get('/news', async (req, res) => {
+app.get("/", (req, res) => {
+  res.send("✅ FlashNews API شغّال.");
+});
+
+app.get("/news", async (req, res) => {
   try {
-    const sources = [
-      { name: 'الجزيرة', url: 'https://www.aljazeera.net/news' },
-      { name: 'العربية', url: 'https://www.alarabiya.net/latest-news' },
-      { name: 'الشرق الأوسط', url: 'https://aawsat.com/home/international/section' }
-    ];
-
-    const allNews = [];
+    const newsList = [];
 
     for (const source of sources) {
       const response = await axios.get(source.url);
       const $ = cheerio.load(response.data);
 
-      let news = [];
+      $(source.selector).each((i, el) => {
+        const title = $(el).text().trim();
+        const link = $(el).attr("href");
 
-      if (source.name === 'الجزيرة') {
-        $('article h3 a').each((i, el) => {
-          const title = $(el).text().trim();
-          const link = $(el).attr('href');
-          if (title && link) {
-            news.push({
-              source: source.name,
-              title,
-              link: link.startsWith('http') ? link : `https://www.aljazeera.net${link}`
-            });
-          }
-        });
-      }
-
-      if (source.name === 'العربية') {
-        $('.sc-3f6c7080-7 a').each((i, el) => {
-          const title = $(el).text().trim();
-          const link = $(el).attr('href');
-          if (title && link) {
-            news.push({
-              source: source.name,
-              title,
-              link: link.startsWith('http') ? link : `https://www.alarabiya.net${link}`
-            });
-          }
-        });
-      }
-
-      if (source.name === 'الشرق الأوسط') {
-        $('h2 a').each((i, el) => {
-          const title = $(el).text().trim();
-          const link = $(el).attr('href');
-          if (title && link) {
-            news.push({
-              source: source.name,
-              title,
-              link: link.startsWith('http') ? link : `https://aawsat.com${link}`
-            });
-          }
-        });
-      }
-
-      allNews.push(...news);
+        if (title && link) {
+          newsList.push({
+            source: source.name,
+            title,
+            url: link.startsWith("http") ? link : source.base + link
+          });
+        }
+      });
     }
 
-    res.json({ status: 'success', total: allNews.length, news: allNews });
+    res.json({ status: "success", count: newsList.length, news: newsList });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: 'فشل في جلب الأخبار' });
+    console.error("❌ Error fetching news:", error.message);
+    res.status(500).json({ status: "error", message: "فشل في جلب الأخبار" });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`FlashNews API running on port ${PORT}`);
+  console.log(`🚀 FlashNews API running on port ${PORT}`);
 });

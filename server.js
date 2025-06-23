@@ -7,12 +7,10 @@ const PORT = process.env.PORT || 3000;
 
 app.use(cors());
 
-// الصفحة الرئيسية
 app.get("/", (req, res) => {
   res.send("✅ FlashNews API يعمل!");
 });
 
-// هذا هو الراوت الأساسي المطلوب
 app.get("/api/news", async (req, res) => {
   try {
     const response = await fetch("https://raw.githubusercontent.com/flashnews24/news/main/news.json");

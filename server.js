@@ -1,28 +1,29 @@
-const express = require("express");
-const cors = require("cors");
-
+const express = require('express');
 const app = express();
-const PORT = process.env.PORT || 3000;
+const port = process.env.PORT || 10000;
 
-app.use(cors());
+const news = [
+  {
+    title: '📢 عاجل: بدء تنفيذ مشروع Flash News',
+    source: 'FlashNews',
+    category: 'محلي',
+    date: '2025-06-23T05:00:00Z'
+  },
+  {
+    title: '⚽ منتخب السعودية يفوز على اليابان 3-1',
+    source: 'الرياضية',
+    category: 'رياضة',
+    date: '2025-06-23T03:00:00Z'
+  }
+];
 
-app.get("/main.json", (req, res) => {
-  res.json([
-    {
-      title: "مثال على خبر عاجل",
-      summary: "هذا مجرد مثال لعرض شكل الخبر في الواجهة.",
-      link: "https://www.example.com",
-      source: "العربية",
-      published_at: new Date().toISOString(),
-      image: "https://via.placeholder.com/300x160.png?text=News"
-    }
-  ]);
+app.get('/', (req, res) => {
+  res.json({
+    status: 'success',
+    news: news
+  });
 });
 
-app.get("/", (req, res) => {
-  res.send("✅ FlashNews API يعمل!");
-});
-
-app.listen(PORT, () => {
-  console.log(`✅ FlashNews API يعمل على http://localhost:${PORT}`);
+app.listen(port, () => {
+  console.log(`✅ FlashNews API is live on http://localhost:${port}`);
 });
